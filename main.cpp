@@ -46,8 +46,6 @@ int main() {
 		terminal_print_ext(0, 0, 40, 20, TK_ALIGN_LEFT, map);
 		terminal_put(x, y, 0x20AC);
 
-		terminal_put_array(int x, int y, int w, int h, const uint8_t *data, int row_stride, int column_stride, const void *layout, int char_size)
-
 		terminal_refresh();
 
 		int key = terminal_read();
