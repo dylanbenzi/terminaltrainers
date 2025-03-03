@@ -1,84 +1,53 @@
 #include <BearLibTerminal.h>
-#include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
 int main() {
+	int windowX = 128;
+	int windowY = 64;
+
+	int cellPixelsX = 8;
+	int cellPixelsY = 4;
+
+	int windowRenderX = windowX + cellPixelsX;
+	int windowRenderY = windowY + cellPixelsY;
+
 	terminal_open();
-	terminal_set("window: size=225x65, title='Terminal Trainers'");
 
+	terminal_set("window.size=128x64");
 
+	int x = 32;
+	int y = 32;
 
-	int x = 20;
-	int y = 20;
-
-	int mapHeight = 100;
-	int mapLength = 100;
-	int mapSize = mapHeight * mapLength;
-
-	char map[mapSize + mapHeight];
-
-	strcat(map, "#######################################\n");
-	strcat(map, "#                                     #\n");
-	strcat(map, "#    *       *             *          #\n");
-	strcat(map, "#        *      *     *          *    #\n");
-	strcat(map, "#   *         *            *          #\n");
-	strcat(map, "#         *        *   *              #\n");
-	strcat(map, "#             *      *     *     *    #\n");
-	strcat(map, "#  *    *                  *          #\n");
-	strcat(map, "#       *        *    *         *     #\n");
-	strcat(map, "#            *       *               ##\n");
-	strcat(map, "##   *                 *    *         #\n");
-	strcat(map, "#             *    *         *        #\n");
-	strcat(map, "#     *   *       *     *             #\n");
-	strcat(map, "#          *  *            *     *    #\n");
-	strcat(map, "#    *           *   *               ##\n");
-	strcat(map, "##        *               *           #\n");
-	strcat(map, "#     *        *    *          *      #\n");
-	strcat(map, "#         *           *     *         #\n");
-	strcat(map, "#                                     #\n");
-	strcat(map, "#######################################\n");
-
+	int baseBackground = 0xF000;
+	int grassTile = baseBackground + 45;
+	int oneRedFlower = baseBackground + 7;
 
 	bool running = true;
-	terminal_refresh();
 	
-	terminal_set("0xE000: characters.png, size=16x16, spacing=0x0, resize=32x32, transparent=#EBEBEB");
-
-	terminal_put(x, y, 0xE001);
-
 	while (running) {
+		terminal_set("0xF000: ./tiles/background.png, size=64x64, align=top-left");
+
+		for(int i = 0; i <= windowY; i+=4){
+			for(int j = 0; j <= windowX; j+=8){
+				int randNum = (rand() % 10) + 1;
+
+				int tileCode = grassTile;
+
+				if(randNum == 10) tileCode = oneRedFlower;
+
+				terminal_put_ext(j, i, 0, 0, tileCode);
+			}
+		}
+
 		terminal_refresh();
-		terminal_clear();
-		
-
-		//terminal_print_ext(0, 0, mapLength, mapHeight, TK_ALIGN_LEFT, map);
-		// terminal_put(x, y, 0x20AC);
-
-		//terminal_put(x, y, 0xE000);
 
 		int key = terminal_read();
 		if (key == TK_ESCAPE) {
 			running = false;
-		}else if (key == TK_UP || key == TK_W) {
-			y--;
-
-			terminal_put(x, y, 0xE001);
-			terminal_refresh();
-		}else if (key == TK_DOWN || key == TK_S) {
-			y++;
-
-			terminal_put(x, y, 0xE000);
-			terminal_refresh();
-		}else if (key == TK_LEFT || key == TK_A) {
-			x--;
-
-			terminal_put(x, y, 0xE002);
-		}else if (key == TK_RIGHT || key == TK_D) {
-			x++;
-
-			terminal_put(x, y, 0xE002);
 		}
+
 	}
 
 	terminal_close();
