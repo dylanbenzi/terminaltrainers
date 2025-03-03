@@ -1,45 +1,43 @@
 #include <BearLibTerminal.h>
 #include <cstdlib>
+#include <fstream>
+#include "json.hpp"
 
+using json = nlohmann::json;
 using namespace std;
 
 int main() {
-	int windowX = 128;
-	int windowY = 64;
+	int windowX = 136;
+	int windowY = 68;
 
 	int cellPixelsX = 8;
 	int cellPixelsY = 4;
 
-	int windowRenderX = windowX + cellPixelsX;
-	int windowRenderY = windowY + cellPixelsY;
+	int windowXCenter = (windowX / 2) - (cellPixelsX / 2);
+	int windowYCenter = (windowY / 2) - (cellPixelsY / 2);
+
+	int baseBackground = 0xE000;
+	int grassTile = baseBackground + 45;
+	int oneRedFlower = baseBackground + 7;
 
 	terminal_open();
 
-	terminal_set("window.size=128x64");
-
-	int x = 32;
-	int y = 32;
-
-	int baseBackground = 0xF000;
-	int grassTile = baseBackground + 45;
-	int oneRedFlower = baseBackground + 7;
+	terminal_set("window.size=136x68");
 
 	bool running = true;
 	
 	while (running) {
-		terminal_set("0xF000: ./tiles/background.png, size=64x64, align=top-left");
+		terminal_set("0xE000: ./tiles/background.png, size=64x64, align=top-left");
 
-		for(int i = 0; i <= windowY; i+=4){
-			for(int j = 0; j <= windowX; j+=8){
-				int randNum = (rand() % 10) + 1;
-
+		for(int i = 0; i <= windowY; i+=cellPixelsY){
+			for(int j = 0; j <= windowX; j+=cellPixelsX){
 				int tileCode = grassTile;
-
-				if(randNum == 10) tileCode = oneRedFlower;
 
 				terminal_put_ext(j, i, 0, 0, tileCode);
 			}
 		}
+
+		terminal_put_ext(windowXCenter, windowYCenter, 0, 0, oneRedFlower);
 
 		terminal_refresh();
 
