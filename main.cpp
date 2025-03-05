@@ -23,7 +23,6 @@ private:
 	int baseTileCode = 0xE000;
 	int cellPixelsX = 8;
 	int cellPixelsY = 4;
-	//map<tuple<int, int, int>, Tile> tilesByPosition;
 	vector<map<pair<int, int>, Tile>> tileLayerMap;
 public:
 	TileMap(): width(0), height(0), layers(0) {
@@ -72,8 +71,6 @@ public:
 					
 					int tileIdInt = stoi(tileIdStr);
 
-					//cout << "Tile: (" << tile.x << ", " << tile.y << "): " << tile.tileOffset << "; Layer: " << tile.tileLayer << endl;
-
 					tile.tileOffset = tileIdInt;
 					tile.x = mapJson["layers"][layer]["tiles"][tileList]["x"];
 					cout << "x: " << tile.x << endl;
@@ -106,8 +103,6 @@ public:
 		Tile tile;
 		auto findTile = tileLayerMap[layer].find({x, y});
 
-		//cout << findTile->second.tileOffset;
-
 		if(findTile != tileLayerMap[layer].end()) {
 			returnTile = findTile -> second;
 			return true;
@@ -133,8 +128,8 @@ public:
 					Tile tile;
 
 					if(getTile(x + tilesX, y + tilesY, tileLayer, tile)) {
-						int xCoord = (tilesX * cellPixelsX) + x;
-						int yCoord = (tilesY * cellPixelsY) + y;
+						int xCoord = (tilesX * cellPixelsX);
+						int yCoord = (tilesY * cellPixelsY);
 						int tileCode = baseTileCode + tile.tileOffset;
 
 						cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
@@ -165,29 +160,11 @@ int main() {
 		return 1;
 	};
 
-	//if(!gameMap.getTile(0, 0, 0, tile)) {
-	//	cout << "Tile error";
-	//	return 1;
-	//};
-
 	int windowX = 136;
 	int windowY = 68;
 
 	int renderX = 0;
 	int renderY = 0;
-
-	//int cellPixelsX = 8;
-	//int cellPixelsY = 4;
-
-	//int windowXCenter = (windowX / 2) - (cellPixelsX / 2);
-	//int windowYCenter = (windowY / 2) - (cellPixelsY / 2);
-
-	//int baseBackground = 0xE000;
-	//int grassTile = baseBackground + 45;
-	//int oneRedFlower = baseBackground + 7;
-
-	//int baseCharacter = 0xF000;
-	//int guyCharacter = baseCharacter + 4;
 
 	terminal_open();
 
@@ -196,21 +173,8 @@ int main() {
 	bool running = true;
 	
 	while (running) {
+		terminal_clear();
 		terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");
-
-		//terminal_set("0xE000: ./tiles/background.png, size=64x64, align=top-left");
-		//terminal_set("0xF000: ./tiles/characters.png, size=64x64, align=top-left");
-
-		//for(int i = 0; i <= windowY; i+=cellPixelsY){
-		//	for(int j = 0; j <= windowX; j+=cellPixelsX){
-		//		int tileCode = grassTile;
-		//
-		//		terminal_put_ext(j, i, 0, 0, tileCode);
-		//	}
-		//}
-
-		//terminal_layer(1);
-		//terminal_put_ext(windowXCenter, windowYCenter, 0, 0, guyCharacter);
 
 		gameMap.render(renderX, renderY, 15, 15);
 
@@ -219,7 +183,9 @@ int main() {
 			running = false;
 		}
 
-
+		if(key == TK_D) {
+			renderX++;
+		}
 
 		terminal_refresh();
 	}
