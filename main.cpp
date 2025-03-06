@@ -8,11 +8,76 @@
 using json = nlohmann::json;
 using namespace std;
 
-struct Tile {
+class Tile {
+private:
 	int x;
 	int y;
 	int tileOffset;
+	int renderLayer;
+	int baseTileCode = 0;
+	int cellPixelsX = 8;
+	int cellPixelsY = 4;
 	bool collisionTile;
+public:
+	Tile(): x(0), y(0), tileOffset(0), renderLayer(0), collisionTile(0), baseTileCode(0) {
+	}
+
+	void renderSingle(int x, int y) {
+		Tile tile;
+
+		int xCoord = (x * cellPixelsX);
+		int yCoord = (y * cellPixelsY);
+		int tileCode = baseTileCode + tileOffset;
+
+		//cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
+		terminal_layer(renderLayer);
+		terminal_put_ext(xCoord, yCoord, 0, 0, tileCode); 
+	}
+
+	int getX() {
+		return x;
+	}
+
+	int getY() {
+		return y;
+	}
+
+	int getTileOffset() {
+		return tileOffset;
+	}
+
+	int getRenderLayer() {
+		return renderLayer;
+	}
+
+	bool getCollisionTile() {
+		return collisionTile;
+	}
+
+	void setX(int value) {
+		x = value;
+	}
+
+	void setY(int value) {
+		y = value;
+	}
+
+	void setCoord(int xValue, int yValue) {
+		x = xValue;
+		y = yValue;
+	}
+
+	void setTileOffset(int value) {
+		tileOffset = value;
+	}
+
+	void setRenderLayer(int value) {
+		renderLayer = value;
+	}
+
+	void setCollisionTile(bool value) {
+		collisionTile = value;
+	}
 };
 
 class TileMap {
@@ -71,18 +136,18 @@ public:
 					
 					int tileIdInt = stoi(tileIdStr);
 
-					tile.tileOffset = tileIdInt;
-					tile.x = mapJson["layers"][layer]["tiles"][tileList]["x"];
-					cout << "x: " << tile.x << endl;
-					tile.y = mapJson["layers"][layer]["tiles"][tileList]["y"];
-					cout << "y: " << tile.y << endl;
-					tile.collisionTile = tileLayersCollider;
+					tile.setTileOffset(tileIdInt); 
+					tile.setX(mapJson["layers"][layer]["tiles"][tileList]["x"]);
+					//cout << "x: " << tile.x << endl;
+					tile.setY(mapJson["layers"][layer]["tiles"][tileList]["y"]);
+					//cout << "y: " << tile.y << endl;
+					tile.setCollisionTile(tileLayersCollider);
 
 					tiles.push_back(tile);
 
 					cout << "tiles push ok" << endl;
 
-					tileLayerMap[drawLayer][{tile.x, tile.y}] = tile;
+					tileLayerMap[drawLayer][{tile.getX(), tile.getY()}] = tile;
 
 					cout << "layer map push ok" << endl;
 				}
@@ -115,7 +180,7 @@ public:
 		Tile tile;
 		
 		if(getTile(x, y, layer, tile)) {
-			return tile.collisionTile;
+			return tile.getCollisionTile();
 		}else{
 			return false;
 		}
@@ -130,9 +195,9 @@ public:
 					if(getTile(x + tilesX, y + tilesY, tileLayer, tile)) {
 						int xCoord = (tilesX * cellPixelsX);
 						int yCoord = (tilesY * cellPixelsY);
-						int tileCode = baseTileCode + tile.tileOffset;
+						int tileCode = baseTileCode + tile.getTileOffset();
 
-						cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
+						//cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
 						terminal_layer(tileLayer);
 						terminal_put_ext(xCoord, yCoord, 0, 0, tileCode); 
 					}
@@ -160,6 +225,10 @@ int main() {
 		return 1;
 	};
 
+	Tile character;
+	character.setTileOffset(0xF000);
+	character.setRenderLayer(99);
+
 	int windowX = 136;
 	int windowY = 68;
 
@@ -169,14 +238,22 @@ int main() {
 	terminal_open();
 
 	terminal_set("window.size=136x68");
+	terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");
+	terminal_set("0xF000: ./tiles/characters.png, size=64x64, align=top-left");
+
+	gameMap.render(renderX, renderY, 15, 15);
+	character.renderSingle(7, 7);
+
+	terminal_refresh();
 
 	bool running = true;
 	
 	while (running) {
 		terminal_clear();
-		terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");
+		//terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");
+		//terminal_set("0xF000: ./tiles/characters.png, size=64x64, align=top-left");
 
-		gameMap.render(renderX, renderY, 15, 15);
+		//gameMap.render(renderX, renderY, 15, 15);
 
 		int key = terminal_read();
 		if(key == TK_ESCAPE) {
@@ -187,6 +264,21 @@ int main() {
 			renderX++;
 		}
 
+		if(key == TK_A) {
+			renderX--;
+		}
+
+		if(key == TK_W) {
+			renderY--;
+		}
+
+		if(key == TK_S) {
+			renderY++;
+		}
+
+		gameMap.render(renderX, renderY, 15, 15);
+		character.renderSingle(7, 7);
+		
 		terminal_refresh();
 	}
 
