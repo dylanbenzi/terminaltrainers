@@ -54,29 +54,29 @@ public:
 		return collisionTile;
 	}
 
-	void setX(int value) {
-		x = value;
+	void setX(int x) {
+		this->x = x;
 	}
 
-	void setY(int value) {
-		y = value;
+	void setY(int y) {
+		this->y = y;
 	}
 
-	void setCoord(int xValue, int yValue) {
-		x = xValue;
-		y = yValue;
+	void setCoord(int x, int y) {
+		this->x = x;
+		this->y = y;
 	}
 
-	void setTileOffset(int value) {
-		tileOffset = value;
+	void setTileOffset(int tileOffset) {
+		this->tileOffset = tileOffset;
 	}
 
-	void setRenderLayer(int value) {
-		renderLayer = value;
+	void setRenderLayer(int renderLayer) {
+		this->renderLayer = renderLayer;
 	}
 
-	void setCollisionTile(bool value) {
-		collisionTile = value;
+	void setCollisionTile(bool isCollisionTile) {
+		this->collisionTile = isCollisionTile;
 	}
 };
 
@@ -206,6 +206,26 @@ public:
 		}
 	}
 
+	void render(int x, int y, int viewWidth, int viewHeight, int xOffset, int yOffset) {
+		for(int tileLayer = 0; tileLayer < layers; tileLayer++) {
+			for(int tilesX = 0; tilesX < viewWidth; tilesX++) {
+				for(int tilesY = 0; tilesY < viewHeight; tilesY++) {
+					Tile tile;
+
+					if(getTile(x + tilesX, y + tilesY, tileLayer, tile)) {
+						int xCoord = (tilesX * cellPixelsX);
+						int yCoord = (tilesY * cellPixelsY);
+						int tileCode = baseTileCode + tile.getTileOffset();
+
+						//cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
+						terminal_layer(tileLayer);
+						terminal_put_ext(xCoord, yCoord, xOffset, yOffset, tileCode); 
+					}
+				}
+			}
+		}
+	}
+
 	int getWidth() {
 		return width;
 	}
@@ -216,11 +236,20 @@ public:
 
 };
 
+enum MOVEMENT_DIR {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+};
+
+void charMove(MOVEMENT_DIR dir, int *pCharX, int *pCharY);
+
 int main() {
 	TileMap gameMap;
 
 	Tile tile;
-	if(!gameMap.loadMapJson("./map/map.json")) {
+	if(!gameMap.loadMapJson("./assets/map.json")) {
 		cout << "Map error";
 		return 1;
 	};
@@ -238,10 +267,13 @@ int main() {
 	terminal_open();
 
 	terminal_set("window.size=136x68");
-	terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");
-	terminal_set("0xF000: ./tiles/characters.png, size=64x64, align=top-left");
+	terminal_set("0xE000: ./assets//spritesheet.png, size=64x64, align=top-left");
+	terminal_set("0xF000: ./assets/characters.png, size=64x64, align=top-left");
+	terminal_set("input.filter={keyboard}");
+	terminal_set("input.repeat-delay=100");
+	terminal_set("input.repeat-rate=10");
 
-	gameMap.render(renderX, renderY, 15, 15);
+	gameMap.render(0, 0, 15, 15, renderX, renderY);
 	character.renderSingle(7, 7);
 
 	terminal_refresh();
