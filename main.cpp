@@ -7,14 +7,6 @@
 using json = nlohmann::json;
 using namespace std;
 
-enum MOVEMENT_DIR {
-	UP,
-	DOWN,
-	LEFT,
-	RIGHT,
-};
-
-void charMove(MOVEMENT_DIR dir, int *pCharX, int *pCharY);
 
 int main() {
 	TileMap gameMap;
