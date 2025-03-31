@@ -42,7 +42,7 @@ int main() {
 	terminal_refresh();
 
 	bool running = true;
-	
+
 	while (running) {
 		terminal_clear();
 		//terminal_set("0xE000: ./map/spritesheet.png, size=64x64, align=top-left");

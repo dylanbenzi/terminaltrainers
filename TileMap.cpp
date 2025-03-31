@@ -92,11 +92,27 @@ bool TileMap::getTile(int x, int y, int layer, Tile& returnTile) const {
 	}
 }
 
-bool TileMap::getCollision(int x, int y, int layer) const {
+bool TileMap::getCollision(int x, int y) const {
 	Tile tile;
 	
-	if(getTile(x, y, layer, tile)) {
+	if(getTile(x, y, 2, tile)) {
 		return tile.getCollisionTile();
+	}else{
+		return false;
+	}
+}
+
+bool TileMap::isInBounds(int x, int y) const {
+	if(x >= 0 && x < width && y >= 0 && y < height) {
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool TileMap::canMoveTo(int x, int y) const {
+	if(isInBounds(x, y) && !getCollision(x, y)) {
+		return true;
 	}else{
 		return false;
 	}

@@ -22,10 +22,9 @@ public:
 
 	bool loadMapJson(const string& filename);
 	bool getTile(int x, int y, int layer, Tile& returnTile) const;
-	bool getCollision(int x, int y, int layer) const;
+	bool getCollision(int x, int y) const;
 
 	//TODO
-	bool hasCollisionAt(int x, int y) const;
 	bool isInBounds(int x, int y) const;
 	bool canMoveTo(int x, int y) const;
 
