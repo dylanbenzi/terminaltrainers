@@ -29,6 +29,8 @@ public:
 	bool isInBounds(int x, int y) const;
 	bool canMoveTo(int x, int y) const;
 
+	void render();
+	void render(int x, int y);
 	void render(int x, int y, int viewWidth, int viewHeight);
 	void render(int x, int y, int viewWidth, int viewHeight, int xOffset, int yOffset);
 

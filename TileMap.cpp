@@ -102,6 +102,46 @@ bool TileMap::getCollision(int x, int y, int layer) const {
 	}
 }
 
+void TileMap::render(){
+	for(int tileLayer = 0; tileLayer < layers; tileLayer++) {
+		for(int tilesX = 0; tilesX < width; tilesX++) {
+			for(int tilesY = 0; tilesY < height; tilesY++) {
+				Tile tile;
+
+				if(getTile(tilesX, tilesY, tileLayer, tile)) {
+					int xCoord = (tilesX * cellPixelsX);
+					int yCoord = (tilesY * cellPixelsY);
+					int tileCode = baseTileCode + tile.getTileOffset();
+
+					//cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
+					terminal_layer(tileLayer);
+					terminal_put_ext(xCoord, yCoord, 0, 0, tileCode); 
+				}
+			}
+		}
+	}
+}
+
+void TileMap::render(int x, int y){
+	for(int tileLayer = 0; tileLayer < layers; tileLayer++) {
+		for(int tilesX = 0; tilesX < width; tilesX++) {
+			for(int tilesY = 0; tilesY < height; tilesY++) {
+				Tile tile;
+
+				if(getTile(x + tilesX, y + tilesY, tileLayer, tile)) {
+					int xCoord = (tilesX * cellPixelsX);
+					int yCoord = (tilesY * cellPixelsY);
+					int tileCode = baseTileCode + tile.getTileOffset();
+
+					//cout << "Tile: (" << tilesX << ", " << tilesY << "): " << tile.tileOffset << "; Layer: " << tileLayer << endl;
+					terminal_layer(tileLayer);
+					terminal_put_ext(xCoord, yCoord, 0, 0, tileCode); 
+				}
+			}
+		}
+	}
+}
+
 void TileMap::render(int x, int y, int viewWidth, int viewHeight) {
 	for(int tileLayer = 0; tileLayer < layers; tileLayer++) {
 		for(int tilesX = 0; tilesX < viewWidth; tilesX++) {

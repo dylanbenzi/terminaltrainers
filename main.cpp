@@ -36,8 +36,8 @@ int main() {
 	terminal_set("input.repeat-delay=100");
 	terminal_set("input.repeat-rate=10");
 
-	gameMap.render(0, 0, 15, 15, renderX, renderY);
-	character.renderSingle(7, 7);
+	gameMap.render();
+	character.renderSingle(8, 8);
 
 	terminal_refresh();
 
@@ -71,8 +71,8 @@ int main() {
 			renderY++;
 		}
 
-		gameMap.render(renderX, renderY, 15, 15);
-		character.renderSingle(7, 7);
+		gameMap.render(renderX, renderY);
+		character.renderSingle(8, 8);
 		
 		terminal_refresh();
 	}
