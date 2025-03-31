@@ -1,6 +1,8 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 
+#include "TileMap.h"
+
 enum MOVEMENT_DIR {
 	UP,
 	DOWN,
@@ -28,9 +30,9 @@ public:
 	Sprite();
 
 	void render();
-	void move();
+	void move(MOVEMENT_DIR direction, TileMap& map);
 
-	void tryMove(int newX, int newY);
+	bool canMove(MOVEMENT_DIR tryDirection, TileMap&& map);
 
 	int getX() const;
 	int getY() const;
