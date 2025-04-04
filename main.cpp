@@ -1,5 +1,7 @@
 #include <BearLibTerminal.h>
 #include <iostream>
+#include "Character.h"
+#include "Sprite.h"
 #include "json.hpp"
 #include "Tile.h"
 #include "TileMap.h"
@@ -10,6 +12,7 @@ using namespace std;
 
 int main() {
 	TileMap gameMap;
+	Sprite player;
 
 	Tile tile;
 	if(!gameMap.loadMapJson("./assets/map.json")) {
@@ -17,27 +20,33 @@ int main() {
 		return 1;
 	};
 
-	Tile character;
-	character.setTileOffset(0xF000);
-	character.setRenderLayer(99);
+	//Tile character;
+	//character.setTileOffset(0xF000);
+	//character.setRenderLayer(99);
 
 	int windowX = 136;
 	int windowY = 68;
 
-	int renderX = 0;
-	int renderY = 0;
+	// TODO: add "center" algo
+	int middleX = 16;
+	int middleY = 16;
+
+	int renderX = windowX/2;
+	int renderY = windowY/2;
+	player.setXY(renderX, renderY);
 
 	terminal_open();
 
 	terminal_set("window.size=136x68");
-	terminal_set("0xE000: ./assets//spritesheet.png, size=64x64, align=top-left");
+	terminal_set("0xE000: ./assets/spritesheet.png, size=64x64, align=top-left");
 	terminal_set("0xF000: ./assets/characters.png, size=64x64, align=top-left");
 	terminal_set("input.filter={keyboard}");
 	terminal_set("input.repeat-delay=100");
 	terminal_set("input.repeat-rate=10");
 
 	gameMap.render();
-	character.renderSingle(8, 8);
+	player.render();
+	//character.renderSingle(8, 8);
 
 	terminal_refresh();
 
@@ -71,8 +80,11 @@ int main() {
 			renderY++;
 		}
 
-		gameMap.render(renderX, renderY);
-		character.renderSingle(8, 8);
+		//gameMap.render(renderX, renderY);
+		//gameMap.render();
+		gameMap.render(0, 0, 17, 17, renderX*-8, renderY*-8);
+		player.render();
+		//character.renderSingle(8, 8);
 		
 		terminal_refresh();
 	}

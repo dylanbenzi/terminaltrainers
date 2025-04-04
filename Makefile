@@ -4,7 +4,7 @@ LDFLAGS = -lBearLibTerminal
 
 TARGET = TerminalTrainers
 
-SOURCES = main.cpp Tile.cpp TileMap.cpp
+SOURCES = main.cpp Tile.cpp TileMap.cpp Sprite.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

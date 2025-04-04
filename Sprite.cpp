@@ -1,16 +1,28 @@
 #include "Sprite.h"
 #include "TileMap.h"
+#include "BearLibTerminal.h"
 
-Sprite::Sprite(): worldX(0), worldY(0), posX(0.0f), posY(0.0f), veloX(0.0f), veloY(0.0f), facing(DOWN), isMoving(false), spriteOffset(0x0000), renderLayer(8), animationFrame(0) {}
+Sprite::Sprite(): spriteTileCode(0xF000), spriteTileOffset(0), worldX(0), worldY(0), posX(0.0f), posY(0.0f), veloX(0.0f), veloY(0.0f), facing(DOWN), isMoving(false), renderLayer(8), animationFrame(0) {
+	//this->spriteTileCode = spriteTileCode;
+	//this->spriteTileOffset = spriteTileOffset;
+}
+
+Sprite::Sprite(int x): spriteTileOffset(x) {}
 
 void Sprite::render() {
-
+	terminal_layer(renderLayer);
+	terminal_put_ext(worldX, worldY, 0, 0, spriteTileCode);
 }
 
 void Sprite::move(MOVEMENT_DIR direction, TileMap& map) {
 }
 
-bool Sprite::canMove(MOVEMENT_DIR tryDirection, TileMap&& map) {
+void Sprite::setXY(int x, int y) {
+	this->worldX = x;
+	this->worldY = y;
+}
+
+bool Sprite::canMove(MOVEMENT_DIR tryDirection, TileMap& map) {
 	if(tryDirection == UP) {
 		if(!map.getCollision(worldX, --worldY)) return true;
 		else return false;

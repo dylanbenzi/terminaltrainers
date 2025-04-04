@@ -23,16 +23,20 @@ private:
 	MOVEMENT_DIR facing;
 	bool isMoving;
 
-	int spriteOffset;
+	int spriteTileCode;
+	int spriteTileOffset;
 	int renderLayer;
 	int animationFrame;
 public:
 	Sprite();
+	Sprite(int x);
 
 	void render();
 	void move(MOVEMENT_DIR direction, TileMap& map);
 
-	bool canMove(MOVEMENT_DIR tryDirection, TileMap&& map);
+	bool canMove(MOVEMENT_DIR tryDirection, TileMap& map);
+
+	void setXY(int x, int y);
 
 	int getX() const;
 	int getY() const;
