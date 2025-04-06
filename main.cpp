@@ -40,13 +40,13 @@ protected:
 		testLevel += L"....................";
 		testLevel += L"....................";
 		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
+		testLevel += L".............#......";
+		testLevel += L".............#......";
 		testLevel += L".....#########......";
 		testLevel += L"....................";
 		testLevel += L"##.#############..#.";
 		testLevel += L"##...............#..";
-		testLevel += L"#################...";
+		testLevel += L"##..#############...";
 		testLevel += L"....................";
 		testLevel += L"....................";
 		testLevel += L"....................";
@@ -85,7 +85,51 @@ protected:
 
 				return false;
 			}
+
+			if(GetKey(olc::Key::W).bHeld) {
+				playerYVelo = 120.0f * fElapsedTime;
+			}
+
+			if(GetKey(olc::Key::S).bHeld) {
+				playerYVelo = -120.0f * fElapsedTime;
+			}
+
+			if(GetKey(olc::Key::D).bHeld) {
+				playerXVelo = 120.0f * fElapsedTime;
+			}
+
+			if(GetKey(olc::Key::A).bHeld) {
+				playerXVelo = -120.0f * fElapsedTime;
+			}
+
+			if(GetKey(olc::Key::SPACE).bPressed) {
+				//interactions
+			}
 		}
+
+
+		float newPlayerX = playerX + playerXVelo * fElapsedTime;
+		float newPlayerY = playerY + playerYVelo * fElapsedTime;
+
+		//collisions
+		
+		if(playerXVelo <= 0) {
+			if(getTile(newPlayerX, playerY) != L'.' || getTile(newPlayerX, playerY + 1.0f) != L'.') {
+				newPlayerX = (int)newPlayerX + 1;
+				playerXVelo = 0;
+			}
+		}else{
+			if(getTile(newPlayerX + 1.0f, playerY) != L'.' || getTile(newPlayerX + 1.0f, playerY + 1.0f) != L'.') {
+				newPlayerX = (int)newPlayerX;
+				playerXVelo = 0;
+			}
+		}
+
+		playerX = newPlayerX;
+		playerY = newPlayerY;
+
+		cameraX = playerX;
+		cameraY = playerY;
 
 		int visibleTilesX = ScreenWidth() / tileSize.x;
 		int visibleTilesY = ScreenHeight() / tileSize.y;
@@ -114,6 +158,9 @@ protected:
 				}
 			}
 		}
+
+		FillRect((playerX - offsetX) * tileSize.x, (playerY - offsetY) * tileSize.x, (playerX - offsetX + 1.0f) * tileSize.x, (playerY - offsetY + 1.0f) * tileSize.y, olc::RED);
+
 		return true;
 	}
 };
