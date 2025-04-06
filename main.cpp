@@ -1,3 +1,4 @@
+#include <iostream>
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
@@ -14,10 +15,16 @@ private:
 	int mapHeight;
 	olc::vi2d tileSize = { 16, 16 };
 
-	float playerX = 1.0f;
-	float playerY = 1.0f;
-	float playerXVelo = 0.0f;
-	float playerYVelo = 0.0f;
+	int playerTileX = 1;
+	int playerTileY = 1;
+
+	float moveTimer = 0.0f;
+	float moveDuration = 0.2f;
+
+	olc::vi2d moveOffset = { 0, 0 };
+	olc::vi2d moveDirection = { 0, 0 };
+
+	bool isMoving = false;
 
 	float cameraX = 0.0f;
 	float cameraY = 0.0f;
@@ -86,20 +93,37 @@ protected:
 				return false;
 			}
 
-			if(GetKey(olc::Key::W).bHeld) {
-				playerYVelo = 120.0f * fElapsedTime;
+			if(!isMoving) {
+				if(GetKey(olc::Key::W).bHeld) moveDirection = { 0, -1 };
+				else if(GetKey(olc::Key::S).bHeld) moveDirection = { 0, 1 };
+				else if(GetKey(olc::Key::D).bHeld) moveDirection = { 1, 0 };
+				else if(GetKey(olc::Key::A).bHeld) moveDirection = { -1, 0 };
+				else moveDirection = { 0, 0 };
+
+				if(moveDirection != olc::vi2d{ 0, 0 }) {
+					int targetX = playerTileX + moveDirection.x;
+					int targetY = playerTileY + moveDirection.y;
+					if(getTile(targetX, targetY) == L'.') {
+						isMoving = true;
+						moveTimer = 0.0f;
+					}
+				}
 			}
 
-			if(GetKey(olc::Key::S).bHeld) {
-				playerYVelo = -120.0f * fElapsedTime;
-			}
 
-			if(GetKey(olc::Key::D).bHeld) {
-				playerXVelo = 120.0f * fElapsedTime;
-			}
-
-			if(GetKey(olc::Key::A).bHeld) {
-				playerXVelo = -120.0f * fElapsedTime;
+			if(isMoving) {
+				moveTimer += fElapsedTime;
+				float t = moveTimer / moveDuration;
+				
+				if(t >= 1.0f) {
+					playerTileX += moveDirection.x;
+					playerTileY += moveDirection.y;
+					moveOffset = { 0, 0 };
+					isMoving = false;
+				}else{
+					moveOffset.x = moveDirection.x * t * tileSize.x;
+					moveOffset.y = moveDirection.y * t * tileSize.y;
+				}
 			}
 
 			if(GetKey(olc::Key::SPACE).bPressed) {
@@ -108,28 +132,10 @@ protected:
 		}
 
 
-		float newPlayerX = playerX + playerXVelo * fElapsedTime;
-		float newPlayerY = playerY + playerYVelo * fElapsedTime;
-
 		//collisions
 		
-		if(playerXVelo <= 0) {
-			if(getTile(newPlayerX, playerY) != L'.' || getTile(newPlayerX, playerY + 1.0f) != L'.') {
-				newPlayerX = (int)newPlayerX + 1;
-				playerXVelo = 0;
-			}
-		}else{
-			if(getTile(newPlayerX + 1.0f, playerY) != L'.' || getTile(newPlayerX + 1.0f, playerY + 1.0f) != L'.') {
-				newPlayerX = (int)newPlayerX;
-				playerXVelo = 0;
-			}
-		}
-
-		playerX = newPlayerX;
-		playerY = newPlayerY;
-
-		cameraX = playerX;
-		cameraY = playerY;
+		cameraX = playerTileX + (float)moveOffset.x / tileSize.x;
+		cameraY = playerTileY + (float)moveOffset.y / tileSize.y;
 
 		int visibleTilesX = ScreenWidth() / tileSize.x;
 		int visibleTilesY = ScreenHeight() / tileSize.y;
@@ -142,25 +148,34 @@ protected:
 		if(offsetX > mapWidth - visibleTilesX) offsetX = mapWidth - visibleTilesX;
 		if(offsetY > mapHeight - visibleTilesY) offsetY = mapHeight - visibleTilesY;
 
+		int nOffsetX = (int)offsetX;
+		int nOffsetY = (int)offsetY;
 		float tileOffsetX = (offsetX - (int)offsetX) * tileSize.x;
 		float tileOffsetY = (offsetY - (int)offsetY) * tileSize.y;
 
 		for(int x = -1; x < visibleTilesX + 1; x++){
 			for(int y = -1; y < visibleTilesY +1; y++){
-				wchar_t tileID = getTile(x + offsetX, y + offsetY);
+				wchar_t tileID = getTile(x + nOffsetX, y + nOffsetY);
+				int tileX = x * tileSize.x - tileOffsetX;
+				int tileY = y * tileSize.y - tileOffsetY;
 				switch(tileID) {
 					case L'.':
-						FillRect(x * tileSize.x - tileOffsetX, y * tileSize.y - tileOffsetY, (x + 1) * tileSize.x - tileOffsetX, (y + 1) * tileSize.y - tileOffsetY, olc::DARK_BLUE);
+						FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::DARK_BLUE);
 						break;
 					case L'#':
-						FillRect(x * tileSize.x - tileOffsetX, y * tileSize.y - tileOffsetY, (x + 1) * tileSize.x - tileOffsetX, (y + 1) * tileSize.y - tileOffsetY, olc::GREEN);
+						FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::GREEN);
 						break;
 				}
 			}
 		}
 
-		FillRect((playerX - offsetX) * tileSize.x, (playerY - offsetY) * tileSize.x, (playerX - offsetX + 1.0f) * tileSize.x, (playerY - offsetY + 1.0f) * tileSize.y, olc::RED);
+		int drawX = (playerTileX - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
+		int drawY = (playerTileY - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
 
+		//FillRect((playerX - offsetX) * tileSize.x, (playerY - offsetY) * tileSize.x, (playerX - offsetX + 1.0f) * tileSize.x, (playerY - offsetY + 1.0f) * tileSize.y, olc::RED);
+		FillRect(drawX, drawY, tileSize.x, tileSize.y, olc::RED);
+
+		cout << "Player (" << playerTileX << ", " << playerTileY << ")" << endl;
 		return true;
 	}
 };
