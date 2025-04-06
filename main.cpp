@@ -1,4 +1,3 @@
-#include <cstddef>
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 
@@ -121,7 +120,7 @@ protected:
 
 int main() {
 	TerminalTrainers demo;
-	if(demo.Construct(640, 360, 8, 8))
+	if(demo.Construct(256, 240, 4, 4))
 		demo.Start();
 
 	return 0;
