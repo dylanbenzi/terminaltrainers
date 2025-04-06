@@ -1,10 +1,10 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra
-LDFLAGS = -lBearLibTerminal
+CXXFLAGS = -std=c++20 
+LDFLAGS = -lX11 -lGL -lpthread -lpng -lstdc++fs
 
 TARGET = TerminalTrainers
 
-SOURCES = main.cpp Tile.cpp TileMap.cpp Sprite.cpp
+SOURCES = main.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
