@@ -26,7 +26,7 @@ private:
 	int playerTileY = 1;
 
 	float moveTimer = 0.0f;
-	float moveDuration = 0.2f;
+	const float moveDuration = 0.2f;
 
 	olc::vi2d moveOffset = { 0, 0 };
 	olc::vi2d moveDirection = { 0, 0 };
