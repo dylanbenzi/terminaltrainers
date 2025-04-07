@@ -25,8 +25,9 @@ private:
 	int playerTileX = 1;
 	int playerTileY = 1;
 
+	float t;
 	float moveTimer = 0.0f;
-	const float moveDuration = 0.2f;
+	const float moveDuration = 0.25f;
 
 	olc::vi2d moveOffset = { 0, 0 };
 	olc::vi2d moveDirection = { 0, 0 };
@@ -132,7 +133,7 @@ protected:
 
 			if(isMoving) {
 				moveTimer += fElapsedTime;
-				float t = moveTimer / moveDuration;
+				t = moveTimer / moveDuration;
 				
 				if(t >= 1.0f) {
 					playerTileX += moveDirection.x;
@@ -149,7 +150,6 @@ protected:
 				//interactions
 			}
 		}
-
 
 		cameraX = playerTileX + (float)moveOffset.x / tileSize.x;
 		cameraY = playerTileY + (float)moveOffset.y / tileSize.y;
@@ -201,34 +201,37 @@ protected:
 		int drawX = (playerTileX - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
 		int drawY = (playerTileY - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
 
+		characterAnimationFrame = (int)(t / 0.250f);
+		if(characterAnimationFrame < 0 || characterAnimationFrame >= 4) characterAnimationFrame = 0;
+
 		switch(characterFacing) {
 			case UP:
 				characterAnimationRow = 3;
 				SetPixelMode(olc::Pixel::MASK);
-				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				DrawPartialSprite(drawX, drawY, characterSprite, characterAnimationFrame * tileSize.x, characterAnimationRow * tileSize.y, tileSize.x, tileSize.y);
 				SetPixelMode(olc::Pixel::NORMAL);
 				break;
 			case DOWN:
 				characterAnimationRow = 0;
 				SetPixelMode(olc::Pixel::MASK);
-				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				DrawPartialSprite(drawX, drawY, characterSprite, characterAnimationFrame * tileSize.x, characterAnimationRow * tileSize.y, tileSize.x, tileSize.y);
 				SetPixelMode(olc::Pixel::NORMAL);
 				break;	
 			case LEFT:
 				characterAnimationRow = 1;
 				SetPixelMode(olc::Pixel::MASK);
-				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				DrawPartialSprite(drawX, drawY, characterSprite, characterAnimationFrame * tileSize.x, characterAnimationRow * tileSize.y, tileSize.x, tileSize.y);
 				SetPixelMode(olc::Pixel::NORMAL);
 				break;
 			case RIGHT:
 				characterAnimationRow = 2;
 				SetPixelMode(olc::Pixel::MASK);
-				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				DrawPartialSprite(drawX, drawY, characterSprite, characterAnimationFrame * tileSize.x, characterAnimationRow * tileSize.y, tileSize.x, tileSize.y);
 				SetPixelMode(olc::Pixel::NORMAL);
 				break;
 		}
 
-		cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << endl;
+		cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << "; Timer: " << t << "; Frame: " << characterAnimationFrame << endl;
 		return true;
 	}
 };
