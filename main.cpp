@@ -4,6 +4,13 @@
 
 using namespace std;
 
+enum MOVEMENT_DIR {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT,
+};
+
 class TerminalTrainers: public olc::PixelGameEngine {
 public:
 	TerminalTrainers() {
@@ -28,6 +35,10 @@ private:
 
 	float cameraX = 0.0f;
 	float cameraY = 0.0f;
+
+	int characterAnimationFrame = 0;
+	int characterAnimationRow = 0;
+	MOVEMENT_DIR characterFacing = DOWN;
 
 	olc::Sprite *backgroundSprite = nullptr;
 	olc::Sprite *characterSprite = nullptr;
@@ -94,11 +105,19 @@ protected:
 			}
 
 			if(!isMoving) {
-				if(GetKey(olc::Key::W).bHeld) moveDirection = { 0, -1 };
-				else if(GetKey(olc::Key::S).bHeld) moveDirection = { 0, 1 };
-				else if(GetKey(olc::Key::D).bHeld) moveDirection = { 1, 0 };
-				else if(GetKey(olc::Key::A).bHeld) moveDirection = { -1, 0 };
-				else moveDirection = { 0, 0 };
+				if(GetKey(olc::Key::W).bHeld) {
+					moveDirection = { 0, -1 };
+					characterFacing = UP;
+				}else if(GetKey(olc::Key::S).bHeld) {
+					moveDirection = { 0, 1 };
+					characterFacing = DOWN;
+				}else if(GetKey(olc::Key::D).bHeld) {
+					moveDirection = { 1, 0 };
+					characterFacing = RIGHT;
+				}else if(GetKey(olc::Key::A).bHeld) {
+					moveDirection = { -1, 0 };
+					characterFacing = LEFT;
+				}else moveDirection = { 0, 0 };
 
 				if(moveDirection != olc::vi2d{ 0, 0 }) {
 					int targetX = playerTileX + moveDirection.x;
@@ -132,8 +151,6 @@ protected:
 		}
 
 
-		//collisions
-		
 		cameraX = playerTileX + (float)moveOffset.x / tileSize.x;
 		cameraY = playerTileY + (float)moveOffset.y / tileSize.y;
 
@@ -153,6 +170,12 @@ protected:
 		float tileOffsetX = (offsetX - (int)offsetX) * tileSize.x;
 		float tileOffsetY = (offsetY - (int)offsetY) * tileSize.y;
 
+		int bgTileX = 5 * tileSize.x;
+		int bgTileY = 5 * tileSize.y;
+
+		int bgTileX2 = 0;
+		int bgTileY2 = 5 * tileSize.y;
+
 		for(int x = -1; x < visibleTilesX + 1; x++){
 			for(int y = -1; y < visibleTilesY +1; y++){
 				wchar_t tileID = getTile(x + nOffsetX, y + nOffsetY);
@@ -160,10 +183,16 @@ protected:
 				int tileY = y * tileSize.y - tileOffsetY;
 				switch(tileID) {
 					case L'.':
-						FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::DARK_BLUE);
+						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::DARK_BLUE);
+						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
 						break;
 					case L'#':
-						FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::GREEN);
+						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::GREEN);
+						
+						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
+						SetPixelMode(olc::Pixel::MASK);
+						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX2, bgTileY2, 16, 16);
+						SetPixelMode(olc::Pixel::NORMAL);
 						break;
 				}
 			}
@@ -172,10 +201,34 @@ protected:
 		int drawX = (playerTileX - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
 		int drawY = (playerTileY - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
 
-		//FillRect((playerX - offsetX) * tileSize.x, (playerY - offsetY) * tileSize.x, (playerX - offsetX + 1.0f) * tileSize.x, (playerY - offsetY + 1.0f) * tileSize.y, olc::RED);
-		FillRect(drawX, drawY, tileSize.x, tileSize.y, olc::RED);
+		switch(characterFacing) {
+			case UP:
+				characterAnimationRow = 3;
+				SetPixelMode(olc::Pixel::MASK);
+				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				SetPixelMode(olc::Pixel::NORMAL);
+				break;
+			case DOWN:
+				characterAnimationRow = 0;
+				SetPixelMode(olc::Pixel::MASK);
+				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				SetPixelMode(olc::Pixel::NORMAL);
+				break;	
+			case LEFT:
+				characterAnimationRow = 1;
+				SetPixelMode(olc::Pixel::MASK);
+				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				SetPixelMode(olc::Pixel::NORMAL);
+				break;
+			case RIGHT:
+				characterAnimationRow = 2;
+				SetPixelMode(olc::Pixel::MASK);
+				DrawPartialSprite(drawX, drawY, characterSprite, 0, characterAnimationRow * 16, 16, 16);
+				SetPixelMode(olc::Pixel::NORMAL);
+				break;
+		}
 
-		cout << "Player (" << playerTileX << ", " << playerTileY << ")" << endl;
+		cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << endl;
 		return true;
 	}
 };
