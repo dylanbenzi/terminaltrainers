@@ -4,7 +4,7 @@ LDFLAGS = -lX11 -lGL -lpthread -lpng -lstdc++fs
 
 TARGET = TerminalTrainers
 
-SOURCES = main.cpp
+SOURCES = main.cpp Pokemon.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
