@@ -61,7 +61,7 @@ private:
 	MOVEMENT_DIR characterFacing = DOWN;
 
 	int randPokemon = getRandomPokemonId();
-	olc::vi2d randPokemonXY = { 1, 1 };
+	olc::vi2d randPokemonXY = { 2, 1 };
 	int pokemonCaptured = false;
 
 	olc::Sprite *backgroundSprite = nullptr;
@@ -74,11 +74,11 @@ protected:
 		characterSprite = new olc::Sprite("./assets/characters.png");
 		pokemonSprite = new olc::Sprite("./assets/pokemon/pokemon151.png");
 
+		testLevel += L"..............######";
+		testLevel += L".................###";
+		testLevel += L"...................#";
 		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
+		testLevel += L".#########..........";
 		testLevel += L"....................";
 		testLevel += L".............#......";
 		testLevel += L".............#......";
@@ -89,12 +89,11 @@ protected:
 		testLevel += L"##..#############...";
 		testLevel += L"....................";
 		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"....................";
+		testLevel += L"#####..............#";
+		testLevel += L"#####..............#";
+		testLevel += L"#####..............#";
+		testLevel += L"#............#######";
+		testLevel += L"#....###############";
 
 		return true;
 	}
@@ -175,7 +174,6 @@ protected:
 					//cout << "(" << targetX << ", " << targetY << ")" << endl;
 
 					if(getTile(targetX, targetY) == L'p') {
-						cout << "!";
 						pokemonCaptured = true;
 					}
 				}
