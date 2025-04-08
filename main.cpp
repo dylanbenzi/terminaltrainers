@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
@@ -300,6 +301,7 @@ protected:
 };
 
 int main() {
+	srand(time(0));
 	TerminalTrainers demo;
 	if(demo.Construct(256, 240, 4, 4))
 		demo.Start();
