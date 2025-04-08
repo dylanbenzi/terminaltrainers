@@ -18,6 +18,6 @@ public:
 };
 
 //global vector of 151 pokemon
-extern const vector<Pokemon> allPokemon;
+extern vector<Pokemon> allPokemon;
 
 #endif

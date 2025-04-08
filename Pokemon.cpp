@@ -18,7 +18,7 @@ olc::vi2d Pokemon::getCoordinate() {
 	return { x, y };
 };
 
-const vector<Pokemon> allPokemon = {
+vector<Pokemon> allPokemon = {
 	{1, "Bulbasaur"},
 	{2, "Ivysaur"},
 	{3, "Venusaur"},
