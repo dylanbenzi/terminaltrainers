@@ -10,12 +10,7 @@ Pokemon::Pokemon(int id, string name) {
 	this->worldPos = { 0, 0 };
 };
 
-Pokemon::Pokemon(int id, string name, olc::vi2d worldPos) {
-	this->id = id;
-	this->name = name;
-	this->worldPos = worldPos;
-};
-
+//get hard-coded spritesheet coordinates
 olc::vi2d Pokemon::getCoordinate() {
 	int y = (id / tilesheetTiles.x) * tileSize.x;
 	int x = (id % tilesheetTiles.x) * tileSize.y;
@@ -23,52 +18,8 @@ olc::vi2d Pokemon::getCoordinate() {
 	return { x, y };
 };
 
-int Pokemon::getRandomPokemonId() {
-	return (rand() % 151 + 1);
-};
-
-void Pokemon::draw(olc::PixelGameEngine *pge, olc::Sprite *pokemonSprite, int nOffsetX, int nOffsetY, float tileOffsetX, float tileOffsetY) {
-	int screenX = (worldPos.x - nOffsetX) * tileSize.x - tileOffsetX;
-	int screenY = (worldPos.y - nOffsetY) * tileSize.y - tileOffsetY;
-
-	if(screenX > 0 && screenY > 0 && screenX < pge->ScreenWidth() && screenY < pge->ScreenHeight()) {
-		olc::vi2d spritesheetCoord = getCoordinate();
-		pge->SetPixelMode(olc::Pixel::MASK);
-		pge->DrawPartialSprite(screenX, screenY, pokemonSprite, spritesheetCoord.x, spritesheetCoord.y, tileSize.x, tileSize.y);
-		pge->SetPixelMode(olc::Pixel::MASK);
-	}
-}
-
-void Pokemon::drawPokemon(olc::PixelGameEngine *pge, olc::Sprite *pokemonSprite, olc::vi2d worldPos) {
-	olc::vi2d spritesheetCoord = getCoordinate();
-	this->worldPos = worldPos;
-	olc::vi2d tileXY = {worldPos.x * tileSize.x, worldPos.y * tileSize.y};
-
-	pge->SetPixelMode(olc::Pixel::MASK);
-	pge->DrawPartialSprite(tileXY.x, tileXY.y, pokemonSprite, spritesheetCoord.x, spritesheetCoord.y, tileSize.x, tileSize.y);
-	pge->SetPixelMode(olc::Pixel::NORMAL);
-};
-
-void Pokemon::drawPokemon(olc::PixelGameEngine *pge, olc::Sprite *pokemonSprite, float tileOffsetX, float tileOffsetY) {
-	olc::vi2d spritesheetCoord = getCoordinate();
-	int tileX = worldPos.x * tileSize.x - tileOffsetX;
-	int tileY = worldPos.y * tileSize.y - tileOffsetY;
-
-	pge->SetPixelMode(olc::Pixel::MASK);
-	pge->DrawPartialSprite(tileX, tileY, pokemonSprite, spritesheetCoord.x, spritesheetCoord.y, tileSize.x, tileSize.y);
-	pge->SetPixelMode(olc::Pixel::NORMAL);
-};
-
-void Pokemon::drawPokemon(olc::PixelGameEngine *pge, olc::Sprite *pokemonSprite, int &tileX, int &tileY) {
-	olc::vi2d spritesheetCoord = getCoordinate();
-
-	pge->SetPixelMode(olc::Pixel::MASK);
-	pge->DrawPartialSprite(tileX, tileY, pokemonSprite, spritesheetCoord.x, spritesheetCoord.y, tileSize.x, tileSize.y);
-	pge->SetPixelMode(olc::Pixel::NORMAL);
-};
-
-vector<Pokemon> allPokemon = {
-	{1, "Bulbasaur", {1, 1}},
+const vector<Pokemon> allPokemon = {
+	{1, "Bulbasaur"},
 	{2, "Ivysaur"},
 	{3, "Venusaur"},
 	{4, "Charmander"},

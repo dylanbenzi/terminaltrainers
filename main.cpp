@@ -36,15 +36,18 @@ public:
 		sAppName = "Terminal Trainers";
 	}
 private:
+	//level map
 	wstring levelStr;
 	olc::vi2d mapDim = { 20, 20 };
 	olc::vi2d tileSize = { 16, 16 };
+
+	//hard-coded x,y positions for background spritesheet
 	int backgroundGrassX = 5 * tileSize.x;
 	int backgroundGrassY = 5 * tileSize.y;
 	int backgroundFlowerX = 0;
 	int backgroundFlowerY = 5 * tileSize.y;
 
-
+	//player movement
 	const float moveDuration = 0.25f;
 	bool isMoving = false;
 	olc::vi2d playerPos = { 1, 1 };
@@ -53,17 +56,21 @@ private:
 	float t;
 	float moveTimer = 0.0f;
 
-	float cameraX = 0.0f;
-	float cameraY = 0.0f;
-
+	//player animation
 	int characterAnimationFrame = 0;
 	int characterAnimationRow = 0;
 	MOVEMENT_DIR characterFacing = DOWN;
 
+	//camera position
+	float cameraX = 0.0f;
+	float cameraY = 0.0f;
+
+	//randomized pokemon
 	int randPokemon = getRandomPokemonId();
 	olc::vi2d randPokemonXY = { 2, 1 };
 	int pokemonCaptured = false;
 
+	//tilesheets
 	olc::Sprite *backgroundSprite = nullptr;
 	olc::Sprite *characterSprite = nullptr;
 	olc::Sprite *pokemonSprite = nullptr;
@@ -74,6 +81,9 @@ protected:
 		characterSprite = new olc::Sprite("./assets/characters.png");
 		pokemonSprite = new olc::Sprite("./assets/pokemon/pokemon151.png");
 
+		//hardcoded level map 
+		//can be improved to be procedurally generated
+		//or imported from a tile map creation program
 		levelStr += L"..............######";
 		levelStr += L".................###";
 		levelStr += L"...................#";
@@ -99,6 +109,7 @@ protected:
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override {
+		//lambda getter and setter functions for tiles
 		auto getTile = [&](int x, int y) {
 			if(x >= 0 && x < mapDim.x && y >= 0 && y < mapDim.y) {
 				return levelStr[y * mapDim.x + x];
@@ -115,6 +126,7 @@ protected:
 
 		setTile(randPokemonXY.x, randPokemonXY.y, 'p');
 		
+		//regenerate randomized pokemon and location if captured
 		if(pokemonCaptured) {
 			setTile(randPokemonXY.x, randPokemonXY.y, '.');
 			randPokemon = getRandomPokemonId();
@@ -122,6 +134,7 @@ protected:
 			pokemonCaptured = false;
 		}
 
+		//only process inputs if terminal window is focused
 		if(IsFocused()) {
 			if(GetKey(olc::Key::ESCAPE).bPressed) {
 				delete backgroundSprite;
@@ -131,6 +144,8 @@ protected:
 				return false;
 			}
 
+			//movement direction cannot be changed while already moving
+			//mimicking pokemon game movement
 			if(!isMoving) {
 				if(GetKey(olc::Key::W).bHeld) {
 					moveDirection = { 0, -1 };
@@ -155,6 +170,7 @@ protected:
 					}
 				}
 
+				//capture pokemon if next to and facing pokemon
 				if(GetKey(olc::Key::SPACE).bPressed) {
 					int targetX = playerPos.x;
 					int targetY = playerPos.y;
@@ -170,6 +186,7 @@ protected:
 				}
 			}
 
+			//process movement animation
 			if(isMoving) {
 				moveTimer += fElapsedTime;
 				t = moveTimer / moveDuration;
@@ -186,38 +203,49 @@ protected:
 			}
 		}
 
+		//calculations to determine what tiles to render on the screen
 		cameraX = playerPos.x + (float)moveOffset.x / tileSize.x;
 		cameraY = playerPos.y + (float)moveOffset.y / tileSize.y;
 
 		int visibleTilesX = ScreenWidth() / tileSize.x;
 		int visibleTilesY = ScreenHeight() / tileSize.y;
 
+		//offset allows for subtile smooth movement
 		float offsetX = cameraX - (float)visibleTilesX / 2.0f;
 		float offsetY = cameraY - (float)visibleTilesY / 2.0f;
 
+		//clamp offset from 0 to visible tile map width
 		if(offsetX < 0) offsetX = 0;
 		if(offsetY < 0) offsetY = 0;
 		if(offsetX > mapDim.x - visibleTilesX) offsetX = mapDim.x - visibleTilesX;
 		if(offsetY > mapDim.y - visibleTilesY) offsetY = mapDim.y - visibleTilesY;
 
+		//additional offsets used in rendering calculations
 		int nOffsetX = (int)offsetX;
 		int nOffsetY = (int)offsetY;
 		float tileOffsetX = (offsetX - (int)offsetX) * tileSize.x;
 		float tileOffsetY = (offsetY - (int)offsetY) * tileSize.y;
 
 
+		//render tile function
+		//renders one tile padding around visible area to account for any delay in drawing to screen
 		for(int x = -1; x < visibleTilesX + 1; x++){
 			for(int y = -1; y < visibleTilesY +1; y++){
 				wchar_t tileID = getTile(x + nOffsetX, y + nOffsetY);
 				int tileX = x * tileSize.x - tileOffsetX;
 				int tileY = y * tileSize.y - tileOffsetY;
+
+				//always draw grass tiles
 				DrawPartialSprite(tileX, tileY, backgroundSprite, backgroundGrassX, backgroundGrassY, tileSize.x, tileSize.y);
+
 				switch(tileID) {
+					//flower collision tile
 					case L'#':
 						SetPixelMode(olc::Pixel::MASK);
 						DrawPartialSprite(tileX, tileY, backgroundSprite, backgroundFlowerX, backgroundFlowerY, tileSize.x, tileSize.y);
 						SetPixelMode(olc::Pixel::NORMAL);
 						break;
+					//pokemon collision sprite
 					case L'p':
 						olc::vi2d pokemonXY = allPokemon[randPokemon].getCoordinate();
 						SetPixelMode(olc::Pixel::MASK);
@@ -228,12 +256,17 @@ protected:
 			}
 		}
 
+		//player x and y position to render
 		int drawX = (playerPos.x - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
 		int drawY = (playerPos.y - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
 
+		//calculate animation frame based on movement time
+		//clamps between 0 and 3
 		characterAnimationFrame = (int)(t / moveDuration);
-		if(characterAnimationFrame < 0 || characterAnimationFrame >= 4) characterAnimationFrame = 0;
+		if(characterAnimationFrame < 0 || characterAnimationFrame > 3) characterAnimationFrame = 0;
 
+		//player render animations
+		//based on facing direction and movement time
 		switch(characterFacing) {
 			case UP:
 				characterAnimationRow = 3;
@@ -267,7 +300,9 @@ protected:
 
 int main() {
 	srand(time(0));
+
 	TerminalTrainers demo;
+
 	if(demo.Construct(256, 240, 4, 4))
 		demo.Start();
 
