@@ -1,9 +1,9 @@
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
 #define OLC_PGE_APPLICATION
+
 #include "olcPixelGameEngine.h"
 #include "Pokemon.h"
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -18,15 +18,15 @@ int getRandomPokemonId() {
 	return (rand() % 151 + 1);
 };
 
-olc::vi2d getRandomEmptyTile(wstring s, int mapWidth, int mapHeight, int playerTileX, int playerTileY) {
-	int randX = (rand() % mapWidth);
-	int randY = (rand() % mapHeight);
+olc::vi2d getRandomEmptyTile(wstring s, olc::vi2d mapDim, olc::vi2d playerPos) {
+	int randX = (rand() % mapDim.x);
+	int randY = (rand() % mapDim.y);
 	olc::vi2d returnXY = { randX, randY };
 
-	if(s[randY * mapWidth + randX] == '.' && randX != playerTileX && randY != playerTileY) {
+	if(s[randY * mapDim.x + randX] == '.' && randX != playerPos.x && randY != playerPos.y) {
 		return returnXY;
 	}else{
-		return getRandomEmptyTile(s, mapWidth, mapHeight, playerTileY, playerTileY);
+		return getRandomEmptyTile(s, mapDim, playerPos);
 	}
 }
 
@@ -36,22 +36,22 @@ public:
 		sAppName = "Terminal Trainers";
 	}
 private:
-	wstring testLevel;
-	int mapWidth = 20;
-	int mapHeight = 20;
+	wstring levelStr;
+	olc::vi2d mapDim = { 20, 20 };
 	olc::vi2d tileSize = { 16, 16 };
+	int backgroundGrassX = 5 * tileSize.x;
+	int backgroundGrassY = 5 * tileSize.y;
+	int backgroundFlowerX = 0;
+	int backgroundFlowerY = 5 * tileSize.y;
 
-	int playerTileX = 1;
-	int playerTileY = 1;
 
-	float t;
-	float moveTimer = 0.0f;
 	const float moveDuration = 0.25f;
-
+	bool isMoving = false;
+	olc::vi2d playerPos = { 1, 1 };
 	olc::vi2d moveOffset = { 0, 0 };
 	olc::vi2d moveDirection = { 0, 0 };
-
-	bool isMoving = false;
+	float t;
+	float moveTimer = 0.0f;
 
 	float cameraX = 0.0f;
 	float cameraY = 0.0f;
@@ -74,60 +74,53 @@ protected:
 		characterSprite = new olc::Sprite("./assets/characters.png");
 		pokemonSprite = new olc::Sprite("./assets/pokemon/pokemon151.png");
 
-		testLevel += L"..............######";
-		testLevel += L".................###";
-		testLevel += L"...................#";
-		testLevel += L"....................";
-		testLevel += L".#########..........";
-		testLevel += L"....................";
-		testLevel += L".............#......";
-		testLevel += L".............#......";
-		testLevel += L".....#########......";
-		testLevel += L"....................";
-		testLevel += L"##.#############..#.";
-		testLevel += L"##...............#..";
-		testLevel += L"##..#############...";
-		testLevel += L"....................";
-		testLevel += L"....................";
-		testLevel += L"#####..............#";
-		testLevel += L"#####..............#";
-		testLevel += L"#####..............#";
-		testLevel += L"#............#######";
-		testLevel += L"#....###############";
+		levelStr += L"..............######";
+		levelStr += L".................###";
+		levelStr += L"...................#";
+		levelStr += L"....................";
+		levelStr += L".#########..........";
+		levelStr += L"....................";
+		levelStr += L".............#......";
+		levelStr += L".............#......";
+		levelStr += L".....#########......";
+		levelStr += L"....................";
+		levelStr += L"##.#############..#.";
+		levelStr += L"##...............#..";
+		levelStr += L"##..#############...";
+		levelStr += L"....................";
+		levelStr += L"....................";
+		levelStr += L"#####..............#";
+		levelStr += L"#####..............#";
+		levelStr += L"#####..............#";
+		levelStr += L"#............#######";
+		levelStr += L"#....###############";
 
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override {
 		auto getTile = [&](int x, int y) {
-			if(x >= 0 && x < mapWidth && y >= 0 && y < mapHeight) {
-				return testLevel[y * mapWidth + x];
+			if(x >= 0 && x < mapDim.x && y >= 0 && y < mapDim.y) {
+				return levelStr[y * mapDim.x + x];
 			}else{
 				return L' ';
 			}
 		};
 
 		auto setTile = [&](int x, int y, wchar_t c) {
-			if(x >= 0 && x < mapWidth && y >= 0 && y < mapHeight) {
-				testLevel[y * mapWidth + x] = c;
+			if(x >= 0 && x < mapDim.x && y >= 0 && y < mapDim.y) {
+				levelStr[y * mapDim.x + x] = c;
 			}
 		};
 
 		setTile(randPokemonXY.x, randPokemonXY.y, 'p');
-
-		
-		//SetPixelMode(olc::Pixel::MASK);
-		//DrawPartialSprite(0, 0, pokemonSprite, 16, 0, 16, 16, 4);
-		//SetPixelMode(olc::Pixel::NORMAL);
 		
 		if(pokemonCaptured) {
 			setTile(randPokemonXY.x, randPokemonXY.y, '.');
 			randPokemon = getRandomPokemonId();
-			randPokemonXY = getRandomEmptyTile(testLevel, mapWidth, mapHeight, playerTileX, playerTileY);
+			randPokemonXY = getRandomEmptyTile(levelStr, mapDim, playerPos);
 			pokemonCaptured = false;
 		}
-
-		if(GetKey(olc::Key::O).bPressed) pokemonCaptured = true;
 
 		if(IsFocused()) {
 			if(GetKey(olc::Key::ESCAPE).bPressed) {
@@ -154,8 +147,8 @@ protected:
 				}else moveDirection = { 0, 0 };
 
 				if(moveDirection != olc::vi2d{ 0, 0 }) {
-					int targetX = playerTileX + moveDirection.x;
-					int targetY = playerTileY + moveDirection.y;
+					int targetX = playerPos.x + moveDirection.x;
+					int targetY = playerPos.y + moveDirection.y;
 					if(getTile(targetX, targetY) == L'.') {
 						isMoving = true;
 						moveTimer = 0.0f;
@@ -163,15 +156,13 @@ protected:
 				}
 
 				if(GetKey(olc::Key::SPACE).bPressed) {
-					int targetX = playerTileX;
-					int targetY = playerTileY;
+					int targetX = playerPos.x;
+					int targetY = playerPos.y;
 
 					if(characterFacing == UP) targetY--;
 					if(characterFacing == DOWN) targetY++;
 					if(characterFacing == RIGHT) targetX++;
 					if(characterFacing == LEFT) targetX--;
-
-					//cout << "(" << targetX << ", " << targetY << ")" << endl;
 
 					if(getTile(targetX, targetY) == L'p') {
 						pokemonCaptured = true;
@@ -179,14 +170,13 @@ protected:
 				}
 			}
 
-
 			if(isMoving) {
 				moveTimer += fElapsedTime;
 				t = moveTimer / moveDuration;
 				
 				if(t >= 1.0f) {
-					playerTileX += moveDirection.x;
-					playerTileY += moveDirection.y;
+					playerPos.x += moveDirection.x;
+					playerPos.y += moveDirection.y;
 					moveOffset = { 0, 0 };
 					isMoving = false;
 				}else{
@@ -194,14 +184,10 @@ protected:
 					moveOffset.y = moveDirection.y * t * tileSize.y;
 				}
 			}
-
-			if(GetKey(olc::Key::SPACE).bPressed) {
-				//interactions
-			}
 		}
 
-		cameraX = playerTileX + (float)moveOffset.x / tileSize.x;
-		cameraY = playerTileY + (float)moveOffset.y / tileSize.y;
+		cameraX = playerPos.x + (float)moveOffset.x / tileSize.x;
+		cameraY = playerPos.y + (float)moveOffset.y / tileSize.y;
 
 		int visibleTilesX = ScreenWidth() / tileSize.x;
 		int visibleTilesY = ScreenHeight() / tileSize.y;
@@ -211,55 +197,41 @@ protected:
 
 		if(offsetX < 0) offsetX = 0;
 		if(offsetY < 0) offsetY = 0;
-		if(offsetX > mapWidth - visibleTilesX) offsetX = mapWidth - visibleTilesX;
-		if(offsetY > mapHeight - visibleTilesY) offsetY = mapHeight - visibleTilesY;
+		if(offsetX > mapDim.x - visibleTilesX) offsetX = mapDim.x - visibleTilesX;
+		if(offsetY > mapDim.y - visibleTilesY) offsetY = mapDim.y - visibleTilesY;
 
 		int nOffsetX = (int)offsetX;
 		int nOffsetY = (int)offsetY;
 		float tileOffsetX = (offsetX - (int)offsetX) * tileSize.x;
 		float tileOffsetY = (offsetY - (int)offsetY) * tileSize.y;
 
-		int bgTileX = 5 * tileSize.x;
-		int bgTileY = 5 * tileSize.y;
-
-		int bgTileX2 = 0;
-		int bgTileY2 = 5 * tileSize.y;
 
 		for(int x = -1; x < visibleTilesX + 1; x++){
 			for(int y = -1; y < visibleTilesY +1; y++){
 				wchar_t tileID = getTile(x + nOffsetX, y + nOffsetY);
 				int tileX = x * tileSize.x - tileOffsetX;
 				int tileY = y * tileSize.y - tileOffsetY;
-				DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
+				DrawPartialSprite(tileX, tileY, backgroundSprite, backgroundGrassX, backgroundGrassY, tileSize.x, tileSize.y);
 				switch(tileID) {
-					case L'.':
-						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::DARK_BLUE);
-						//DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
-						break;
 					case L'#':
-						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::GREEN);
-						
-						//DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
 						SetPixelMode(olc::Pixel::MASK);
-						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX2, bgTileY2, 16, 16);
+						DrawPartialSprite(tileX, tileY, backgroundSprite, backgroundFlowerX, backgroundFlowerY, tileSize.x, tileSize.y);
 						SetPixelMode(olc::Pixel::NORMAL);
 						break;
 					case L'p':
 						olc::vi2d pokemonXY = allPokemon[randPokemon].getCoordinate();
 						SetPixelMode(olc::Pixel::MASK);
-						DrawPartialSprite(tileX, tileY, pokemonSprite, pokemonXY.x, pokemonXY.y, 16, 16);
+						DrawPartialSprite(tileX, tileY, pokemonSprite, pokemonXY.x, pokemonXY.y, tileSize.x, tileSize.y);
 						SetPixelMode(olc::Pixel::NORMAL);
 				}
 
 			}
 		}
-		//allPokemon[0].draw(this, pokemonSprite, nOffsetX, nOffsetX, tileOffsetX, tileOffsetY);
-		//allPokemon[0].drawPokemon(this, pokemonSprite, tileOffsetX, tileOffsetY);
 
-		int drawX = (playerTileX - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
-		int drawY = (playerTileY - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
+		int drawX = (playerPos.x - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
+		int drawY = (playerPos.y - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
 
-		characterAnimationFrame = (int)(t / 0.250f);
+		characterAnimationFrame = (int)(t / moveDuration);
 		if(characterAnimationFrame < 0 || characterAnimationFrame >= 4) characterAnimationFrame = 0;
 
 		switch(characterFacing) {
@@ -288,11 +260,6 @@ protected:
 				SetPixelMode(olc::Pixel::NORMAL);
 				break;
 		}
-
-		//cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << "; Timer: " << t << "; Frame: " << characterAnimationFrame << "; Poke: " << randPokemon << endl;
-
-		//allPokemon[0].drawPokemon(this, pokemonSprite, tileOffsetX, tileOffsetY);
-		//allPokemon[1].drawPokemon(this, pokemonSprite, {0, 1});
 
 		return true;
 	}
