@@ -1,6 +1,8 @@
+#include <cstdlib>
 #include <iostream>
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include "Pokemon.h"
 
 using namespace std;
 
@@ -11,6 +13,22 @@ enum MOVEMENT_DIR {
 	RIGHT,
 };
 
+int getRandomPokemonId() { 
+	return (rand() % 151 + 1);
+};
+
+olc::vi2d getRandomEmptyTile(wstring s, int mapWidth, int mapHeight, int playerTileX, int playerTileY) {
+	int randX = (rand() % mapWidth);
+	int randY = (rand() % mapHeight);
+	olc::vi2d returnXY = { randX, randY };
+
+	if(s[randY * mapWidth + randX] == '.' && randX != playerTileX && randY != playerTileY) {
+		return returnXY;
+	}else{
+		return getRandomEmptyTile(s, mapWidth, mapHeight, playerTileY, playerTileY);
+	}
+}
+
 class TerminalTrainers: public olc::PixelGameEngine {
 public:
 	TerminalTrainers() {
@@ -18,8 +36,8 @@ public:
 	}
 private:
 	wstring testLevel;
-	int mapWidth;
-	int mapHeight;
+	int mapWidth = 20;
+	int mapHeight = 20;
 	olc::vi2d tileSize = { 16, 16 };
 
 	int playerTileX = 1;
@@ -41,6 +59,10 @@ private:
 	int characterAnimationRow = 0;
 	MOVEMENT_DIR characterFacing = DOWN;
 
+	int randPokemon = getRandomPokemonId();
+	olc::vi2d randPokemonXY = { 1, 1 };
+	int pokemonCaptured = false;
+
 	olc::Sprite *backgroundSprite = nullptr;
 	olc::Sprite *characterSprite = nullptr;
 	olc::Sprite *pokemonSprite = nullptr;
@@ -51,8 +73,6 @@ protected:
 		characterSprite = new olc::Sprite("./assets/characters.png");
 		pokemonSprite = new olc::Sprite("./assets/pokemon/pokemon151.png");
 
-		mapWidth = 20;
-		mapHeight = 20;
 		testLevel += L"....................";
 		testLevel += L"....................";
 		testLevel += L"....................";
@@ -74,7 +94,7 @@ protected:
 		testLevel += L"....................";
 		testLevel += L"....................";
 		testLevel += L"....................";
-			
+
 		return true;
 	}
 
@@ -92,9 +112,22 @@ protected:
 				testLevel[y * mapWidth + x] = c;
 			}
 		};
+
+		setTile(randPokemonXY.x, randPokemonXY.y, 'p');
+
+		
 		//SetPixelMode(olc::Pixel::MASK);
 		//DrawPartialSprite(0, 0, pokemonSprite, 16, 0, 16, 16, 4);
 		//SetPixelMode(olc::Pixel::NORMAL);
+		
+		if(pokemonCaptured) {
+			setTile(randPokemonXY.x, randPokemonXY.y, '.');
+			randPokemon = getRandomPokemonId();
+			randPokemonXY = getRandomEmptyTile(testLevel, mapWidth, mapHeight, playerTileX, playerTileY);
+			pokemonCaptured = false;
+		}
+
+		if(GetKey(olc::Key::O).bPressed) pokemonCaptured = true;
 
 		if(IsFocused()) {
 			if(GetKey(olc::Key::ESCAPE).bPressed) {
@@ -126,6 +159,23 @@ protected:
 					if(getTile(targetX, targetY) == L'.') {
 						isMoving = true;
 						moveTimer = 0.0f;
+					}
+				}
+
+				if(GetKey(olc::Key::SPACE).bPressed) {
+					int targetX = playerTileX;
+					int targetY = playerTileY;
+
+					if(characterFacing == UP) targetY--;
+					if(characterFacing == DOWN) targetY++;
+					if(characterFacing == RIGHT) targetX++;
+					if(characterFacing == LEFT) targetX--;
+
+					//cout << "(" << targetX << ", " << targetY << ")" << endl;
+
+					if(getTile(targetX, targetY) == L'p') {
+						cout << "!";
+						pokemonCaptured = true;
 					}
 				}
 			}
@@ -181,22 +231,31 @@ protected:
 				wchar_t tileID = getTile(x + nOffsetX, y + nOffsetY);
 				int tileX = x * tileSize.x - tileOffsetX;
 				int tileY = y * tileSize.y - tileOffsetY;
+				DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
 				switch(tileID) {
 					case L'.':
 						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::DARK_BLUE);
-						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
+						//DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
 						break;
 					case L'#':
 						//FillRect(tileX, tileY, tileSize.x, tileSize.y, olc::GREEN);
 						
-						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
+						//DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX, bgTileY, 16, 16);
 						SetPixelMode(olc::Pixel::MASK);
 						DrawPartialSprite(tileX, tileY, backgroundSprite, bgTileX2, bgTileY2, 16, 16);
 						SetPixelMode(olc::Pixel::NORMAL);
 						break;
+					case L'p':
+						olc::vi2d pokemonXY = allPokemon[randPokemon].getCoordinate();
+						SetPixelMode(olc::Pixel::MASK);
+						DrawPartialSprite(tileX, tileY, pokemonSprite, pokemonXY.x, pokemonXY.y, 16, 16);
+						SetPixelMode(olc::Pixel::NORMAL);
 				}
+
 			}
 		}
+		//allPokemon[0].draw(this, pokemonSprite, nOffsetX, nOffsetX, tileOffsetX, tileOffsetY);
+		//allPokemon[0].drawPokemon(this, pokemonSprite, tileOffsetX, tileOffsetY);
 
 		int drawX = (playerTileX - nOffsetX) * tileSize.x + moveOffset.x - tileOffsetX;
 		int drawY = (playerTileY - nOffsetY) * tileSize.y + moveOffset.y - tileOffsetY;
@@ -231,7 +290,11 @@ protected:
 				break;
 		}
 
-		cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << "; Timer: " << t << "; Frame: " << characterAnimationFrame << endl;
+		//cout << "Player (" << playerTileX << ", " << playerTileY << "); Facing " << characterFacing << "; Timer: " << t << "; Frame: " << characterAnimationFrame << "; Poke: " << randPokemon << endl;
+
+		//allPokemon[0].drawPokemon(this, pokemonSprite, tileOffsetX, tileOffsetY);
+		//allPokemon[1].drawPokemon(this, pokemonSprite, {0, 1});
+
 		return true;
 	}
 };
